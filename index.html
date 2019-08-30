@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>SVG Editor</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/xml/xml.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css">
+	</head>
+	<body>
+		<button id="-svgedit-btn-move">move</button>
+		<button id="-svgedit-btn-rect"><u>r</u>ect</button>
+		<button id="-svgedit-btn-circle"><u>c</u>ircle</button>
+		<textarea id="in">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+</svg></textarea>
+		<div id="out">
+		</div>
+
+		<script>
+var editor = CodeMirror.fromTextArea(document.getElementById("in"), {
+	lineNumbers: true,
+	mode: "xml"
+});
+editor.on("change", function() {
+	let value = editor.getValue();
+	document.getElementById("out").innerHTML = value;
+})
+
+var buttons = {
+	"rect": '<rect x="..." y="..." width="..." height="..." fill="..." />',
+	"circle": '<circle cx="..." cy="..." r="..." fill="..." />'
+};
+for (let btn in buttons) {
+	document.getElementById("-svgedit-btn-" + btn).addEventListener("click", function() {
+		editor.replaceSelection(buttons[btn], "around");
+		editor.focus();
+	});
+}
+
+editor.setOption("extraKeys", {
+	"Ctrl-K": function(editor) {
+		var cursor = editor.getCursor("head");
+		var nTimes = 0;
+		for (var line = cursor.line; line != cursor.line || nTimes < 2; line = line < editor.lastLine() ? line + 1 : editor.firstLine()) {
+			if (line == cursor.line) {
+				nTimes++;
+			}
+
+			var ch = cursor.line == line && nTimes == 1 ? Math.max(cursor.ch-4, 0) : 0;
+			var text = editor.getLine(line);
+			var index = text.slice(ch).indexOf('="..."');
+			if (index !== -1) {
+				index += ch;
+				editor.setSelection({
+					line: line,
+					ch: index+2
+				},{
+					line: line,
+					ch: index+5
+				});
+				break;
+			}
+		}
+
+		return false;
+	},
+	"Ctrl-Alt-R": function() {
+		document.getElementById("-svgedit-btn-rect").click();
+	},
+	"Ctrl-Alt-C": function() {
+		document.getElementById("-svgedit-btn-circle").click();
+	}
+});
+		</script>
+	</body>
+</html>
