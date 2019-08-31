@@ -5,22 +5,31 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/mode/xml/xml.min.js"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.4/codemirror.min.css">
+		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
-		<button id="-svgedit-btn-move">move</button>
-		<button id="-svgedit-btn-rect"><u>r</u>ect</button>
-		<button id="-svgedit-btn-circle"><u>c</u>ircle</button>
-		<textarea id="in">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+		<div id="in-cnt">
+			<div id="buttons">
+				<button id="-svgedit-btn-move">move</button>
+				<button id="-svgedit-btn-rect">rect</button>
+				<button id="-svgedit-btn-circle">circle</button>
+			</div>
+			<textarea id="in">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+	width="..." height="...">
 
 </svg></textarea>
+		</div>
 		<div id="out">
 		</div>
 
 		<script>
 var editor = CodeMirror.fromTextArea(document.getElementById("in"), {
 	lineNumbers: true,
-	mode: "xml"
+	mode: "xml",
+	indentUnit: 4,
+	tabSize: 4,
+	indentWithTabs: true
 });
 editor.on("change", function() {
 	let value = editor.getValue();
@@ -39,7 +48,7 @@ for (let btn in buttons) {
 }
 
 editor.setOption("extraKeys", {
-	"Ctrl-K": function(editor) {
+	"Ctrl-M": function(editor) {
 		var cursor = editor.getCursor("head");
 		var nTimes = 0;
 		for (var line = cursor.line; line != cursor.line || nTimes < 2; line = line < editor.lastLine() ? line + 1 : editor.firstLine()) {
@@ -65,11 +74,28 @@ editor.setOption("extraKeys", {
 
 		return false;
 	},
-	"Ctrl-Alt-R": function() {
-		document.getElementById("-svgedit-btn-rect").click();
-	},
-	"Ctrl-Alt-C": function() {
-		document.getElementById("-svgedit-btn-circle").click();
+	"Ctrl-S": function(editor) {
+		console.log("Hello");
+
+		var value = editor.getValue();
+		var doc = new DOMParser().parseFromString(value, "text/xml");
+		var title = "svg";
+		for (var child of doc.documentElement.children) {
+			if (child.tagName == "title") {
+				title = child.textContent.toLowerCase().replace(/\s+/g, "_");
+			}
+		}
+
+		var date = new Date();
+		var title = title + "_" + date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + "-" + date.getHours() + (date.getMinutes()+1);
+		var a = document.createElement("a");
+		a.setAttribute("download", title + ".svg");
+		a.href = "data:image/svg+xml," + value;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+
+		return false;
 	}
 });
 		</script>
